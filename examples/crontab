@@ -1,0 +1,5 @@
+# crontab -e (root)
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+
+# dynamic ipsets
+*/5 * * * * /fw/ipset/ipset-update.sh dynamic

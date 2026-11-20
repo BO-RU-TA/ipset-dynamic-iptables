@@ -1,0 +1,6 @@
+# pliki generowane przez ipset-update.sh
+fw/ipset/static/*.ip
+fw/ipset/dynamic/*.ip
+fw/ipset/*/*.ip.new
+fw/ipset/log/*
+!fw/ipset/log/.gitkeep
