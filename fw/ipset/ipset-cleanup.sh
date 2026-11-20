@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ipset-cleanup.sh --flush|--destroy
-# czyści albo usuwa zestawy, destroy nie usunie zestawu, do którego odwołuje się reguła zapory
+# flushes or destroys the sets; destroy fails for a set still referenced by a firewall rule
 
 # usage
 case "$1" in
@@ -12,7 +12,7 @@ esac
 
 IPSET="/usr/sbin/ipset"
 
-# przekieruj output do logu
+# send all output, including errors, to the daily log
 exec >> "/fw/ipset/log/$(date +%d_%m_%Y).log" 2>&1
 
 ####

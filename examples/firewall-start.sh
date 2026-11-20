@@ -1,7 +1,7 @@
 #!/bin/bash
-# Fragment startu zapory: zestawy muszą istnieć, zanim załadujesz reguły z -m set --match-set.
+# Firewall start fragment: the sets must exist before loading rules that use -m set --match-set.
 
 /fw/ipset/ipset-update.sh static
 /fw/ipset/ipset-update.sh dynamic
 
-# ... dalej ładowanie reguł iptables
+# ... then load the iptables rules

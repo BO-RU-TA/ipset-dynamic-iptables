@@ -1,6 +1,6 @@
 #!/bin/bash
 # ipset-update.sh static|dynamic
-# tworzy i aktualizuje zestawy: static - adresy i sieci, dynamic - domeny
+# creates and updates ipsets: static - addresses and networks, dynamic - domain names
 
 case "$1" in
     static|dynamic) MODE="$1" ;;
@@ -12,7 +12,7 @@ DIR="/fw/ipset/$MODE"
 IPSET="/usr/sbin/ipset"
 IP4RE='^[0-9]{1,3}(\.[0-9]{1,3}){3}(/[0-9]{1,2})?$'
 
-# przekieruj output do logu
+# send all output, including errors, to the daily log
 exec >> "/fw/ipset/log/$(date +%d_%m_%Y).log" 2>&1
 
 echo "$(date) | $MODE"
@@ -23,10 +23,10 @@ for APP in "$DIR"/*.app; do
     SET="${MODE}_$(basename "$APP" .app)"
     IPF="${APP%.app}.ip"
 
-    # zestaw musi istnieć, zanim zapora załaduje reguły
+    # the set must exist before the firewall loads its rules
     $IPSET create "$SET" hash:net -exist
 
-    # .app -> .ip.new: static przepisuje adresy, dynamic rozwiązuje domeny
+    # .app -> .ip.new: static copies addresses, dynamic resolves domain names
     OK=1
     while read -r E; do
         case "$MODE" in
@@ -40,19 +40,19 @@ for APP in "$DIR"/*.app; do
     done < <(sed -E 's@(#|//).*@@; s/[[:blank:]]//g; /^$/d' "$APP") > "$IPF.new"
     sort -u -o "$IPF.new" "$IPF.new"
 
-    # niepełna albo pusta lista - zestaw bez zmian
+    # incomplete or empty list (e.g. DNS failure) - leave the set unchanged
     if [ $OK = 0 ] || [ ! -s "$IPF.new" ]; then
         echo "  $SET: unchanged"
         rm -f "$IPF.new"
         continue
     fi
 
-    # różnice względem poprzedniego .ip - tylko do logu
+    # differences against the previous .ip - for the log only
     touch "$IPF"
     CHANGES="$(diff "$IPF" "$IPF.new" | grep '^[<>]' | tr '\n' ' ')"
     mv "$IPF.new" "$IPF"
 
-    # zestaw tymczasowy i atomowa podmiana
+    # temporary set and atomic swap
     $IPSET create "${SET}_tmp" hash:net -exist
     $IPSET flush "${SET}_tmp"
     while read -r E; do
