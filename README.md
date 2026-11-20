@@ -6,8 +6,8 @@ Address lists live in plain text files and are loaded into `ipset` sets; `iptabl
 Updating a list never requires reloading the firewall, and every set is replaced atomically (`ipset swap`),
 so rules never see an empty or half-filled set.
 
-- **static** lists — IP addresses and networks you maintain by hand
-- **dynamic** lists — domain names, resolved periodically (e.g. from cron)
+- **static** lists: IP addresses and networks you maintain by hand
+- **dynamic** lists: domain names, resolved periodically (e.g. from cron)
 
 ## Contents
 
@@ -26,7 +26,7 @@ examples/
 └── iptables-rules.sh         # sample rules with -m set --match-set
 ```
 
-The `*.app` files are **examples** — replace them with your own lists. The `*.ip` files are generated.
+The `*.app` files are **examples**; replace them with your own lists. The `*.ip` files are generated.
 
 ## Requirements
 
@@ -43,7 +43,7 @@ ipset list -t                       # check what was created
 ```
 
 Different location: change the `/fw/ipset` paths in both scripts.
-An argument is required — without it the scripts print `Usage` and exit with code 1.
+An argument is required. Without it, the scripts print `Usage` and exit with code 1.
 
 ## Usage
 
@@ -70,8 +70,8 @@ Wed Jan  1 00:30:01 CET 2025 | dynamic
 The file name defines the set name: `static/name.app` → `static_name`, `dynamic/name.app` → `dynamic_name`.
 One entry per line; `#` and `//` comments and empty lines are ignored.
 
-- **static** — only addresses (`192.0.2.10`) and networks (`198.51.100.0/24`)
-- **dynamic** — only domain names
+- **static**: only addresses (`192.0.2.10`) and networks (`198.51.100.0/24`)
+- **dynamic**: only domain names
 
 All sets use the `hash:net` type (a single address is stored as /32), so `swap` always gets compatible sets.
 
@@ -79,21 +79,21 @@ All sets use the `hash:net` type (a single address is stored as /32), so `swap` 
 
 For every `*.app` file in the chosen directory it:
 
-1. creates the set if it does not exist (even when DNS is down — firewall rules must be able to find it),
+1. creates the set if it does not exist (even when DNS is down, because firewall rules must be able to find it),
 2. builds a new `.ip` file: copies addresses/networks (static) or resolves domains with `dig` (dynamic);
    entries that do not belong in that kind of list are skipped and logged,
-3. if any domain returned no A records or the list is empty — **leaves the set unchanged**,
+3. if any domain returned no A records or the list is empty, it **leaves the set unchanged**,
 4. logs the difference between the old and the new `.ip` file,
 5. loads the `.ip` file into a temporary set and swaps it with the live one (`ipset swap`).
 
-The set is swapped on every run, even when nothing changed — cheap for small lists, and after a reboot
+The set is swapped on every run, even when nothing changed. This is cheap for small lists, and after a reboot
 the sets refill themselves even if the `.ip` files are unchanged.
 
 ## Notes
 
 - Invalid entries only show up in the log: an entry in the wrong kind of list as `skipped`,
   a bad octet (`300.1.1.1`) as an `ipset` error.
-- A set name is limited to 31 characters and the script appends `_tmp` — keep the `static_`/`dynamic_` prefix
+- A set name is limited to 31 characters and the script appends `_tmp`, so keep the `static_`/`dynamic_` prefix
   plus the `.app` file name within 27 characters.
 - Migrating from an older version (sets of type `hash:ip`, `swap failed` in the log): remove the rules,
   run `ipset-cleanup.sh --destroy`, then `ipset-update.sh static` and `dynamic`, and load the rules again.
@@ -107,4 +107,4 @@ the sets refill themselves even if the `.ip` files are unchanged.
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT, see [LICENSE](LICENSE).
